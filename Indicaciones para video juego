@@ -1,0 +1,16 @@
+
+Te recomiendo hacer “Atrapa las monedas”: mueves un personaje de lado a lado para recoger monedas que caen y evitar obstáculos.
+
+Es sencillo y te permite aprender lo básico:
+
+Movimiento con el teclado.
+Colisiones entre objetos.
+Puntaje y vidas.
+Pantalla de inicio y botón para volver a jugar.
+Como tu proyecto ya tiene un index.html, puedes hacerlo directamente con HTML, CSS y JavaScript, sin instalar nada.
+
+6:38 PM
+27s
+•
+Auto (gpt-6-luna) • 0.2 credits
+si me parece bien, puedes ejecutarlo y poder pobarlo como funciona
