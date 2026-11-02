@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10172b">
+  <title>Atrapa las monedas</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: #10172b;
+      color: #f7f8ff;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 50% 5%, rgba(76, 91, 178, .24), transparent 48%),
+        radial-gradient(ellipse at 5% 90%, rgba(30, 190, 188, .1), transparent 38%),
+        #10172b;
+    }
+
+    .game-shell {
+      width: min(100%, 800px);
+      padding: clamp(18px, 4vw, 32px);
+      border: 1px solid rgba(183, 197, 255, .16);
+      border-radius: 26px;
+      background: rgba(23, 32, 57, .88);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35), inset 0 1px rgba(255,255,255,.06);
+    }
+
+    .heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: #8fe2d7;
+      font-size: .73rem;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 5vw, 2.45rem);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    .subtitle {
+      margin: 9px 0 0;
+      color: #aab4d1;
+      font-size: .96rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .stat {
+      min-width: 84px;
+      padding: 10px 13px;
+      border: 1px solid rgba(183,197,255,.13);
+      border-radius: 15px;
+      background: rgba(255,255,255,.045);
+      text-align: center;
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 3px;
+      color: #aab4d1;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .stat-value { font-size: 1.3rem; font-weight: 800; }
+
+    .game-frame {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(182, 203, 255, .2);
+      border-radius: 19px;
+      background: #111a35;
+      box-shadow: 0 12px 30px rgba(0,0,0,.2);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(12, 19, 39, .58);
+      backdrop-filter: blur(5px);
+      text-align: center;
+    }
+
+    .overlay[hidden] { display: none; }
+
+    .dialog {
+      width: min(100%, 380px);
+      padding: 24px;
+      border: 1px solid rgba(198, 208, 255, .2);
+      border-radius: 22px;
+      background: rgba(26, 37, 68, .94);
+      box-shadow: 0 18px 50px rgba(0,0,0,.3);
+    }
+
+    .dialog-icon { margin-bottom: 8px; font-size: 2rem; }
+    .dialog h2 { margin: 0; font-size: 1.65rem; }
+    .dialog p { margin: 10px 0 20px; color: #c0c9e2; line-height: 1.5; }
+
+    button {
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .play-button {
+      min-width: 180px;
+      padding: 12px 21px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #72e0c3, #39bfa9);
+      color: #102b32;
+      font-weight: 900;
+      box-shadow: 0 6px 20px rgba(57,191,169,.25);
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .play-button:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .play-button:focus-visible, .move-button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      color: #aab4d1;
+      font-size: .86rem;
+    }
+
+    .key-hint { display: flex; align-items: center; gap: 8px; }
+
+    kbd {
+      padding: 4px 7px;
+      border: 1px solid rgba(190,201,245,.24);
+      border-radius: 6px;
+      background: rgba(255,255,255,.07);
+      color: #ecf0ff;
+      font: 700 .76rem "Segoe UI", sans-serif;
+      box-shadow: 0 2px 0 rgba(0,0,0,.2);
+    }
+
+    .touch-controls { display: none; gap: 10px; }
+
+    .move-button {
+      width: 54px;
+      height: 44px;
+      border: 1px solid rgba(190,201,245,.22);
+      border-radius: 12px;
+      background: rgba(255,255,255,.07);
+      font-size: 1.2rem;
+      touch-action: none;
+    }
+
+    @media (pointer: coarse) {
+      .touch-controls { display: flex; }
+      .key-hint { display: none; }
+      .controls { justify-content: center; }
+    }
+
+    @media (max-width: 540px) {
+      body { padding: 14px 10px; }
+      .game-shell { padding: 17px 13px; border-radius: 21px; }
+      .heading { flex-direction: column; }
+      .stats { width: 100%; }
+      .stat { flex: 1; }
+      .controls { margin-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell">
+    <header class="heading">
+      <div>
+        <p class="eyebrow">Un juego rápido</p>
+        <h1>Atrapa las monedas</h1>
+        <p class="subtitle">¡Junta monedas y esquiva las bombas!</p>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><span class="stat-label">Puntos</span><span class="stat-value" id="score">0</span></div>
+        <div class="stat"><span class="stat-label">Récord</span><span class="stat-value" id="best">0</span></div>
+        <div class="stat"><span class="stat-label">Vidas</span><span class="stat-value" id="lives">❤️❤️❤️</span></div>
+      </div>
+    </header>
+
+    <section class="game-frame" aria-label="Zona de juego">
+      <canvas id="game" aria-label="Juego: mueve la canasta para atrapar monedas y evitar bombas"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="dialog">
+          <div class="dialog-icon" id="dialog-icon">🪙</div>
+          <h2 id="dialog-title">¿Listo para jugar?</h2>
+          <p id="dialog-copy">Atrapa las monedas, esquiva las bombas y consigue la mayor puntuación.</p>
+          <button class="play-button" id="play-button" type="button">¡Empezar!</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="controls">
+      <div class="key-hint">
+        <span>Mover:</span> <kbd>←</kbd><kbd>→</kbd> <span>o</span> <kbd>A</kbd><kbd>D</kbd>
+      </div>
+      <div class="touch-controls" aria-label="Controles táctiles">
+        <button class="move-button" type="button" data-direction="-1" aria-label="Mover a la izquierda">←</button>
+        <button class="move-button" type="button" data-direction="1" aria-label="Mover a la derecha">→</button>
+      </div>
+      <span>Moneda = +10 · Bomba = pierdes una vida</span>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.querySelector("#game");
+      const context = canvas.getContext("2d");
+      const overlay = document.querySelector("#overlay");
+      const playButton = document.querySelector("#play-button");
+      const scoreDisplay = document.querySelector("#score");
+      const bestDisplay = document.querySelector("#best");
+      const livesDisplay = document.querySelector("#lives");
+      const dialogTitle = document.querySelector("#dialog-title");
+      const dialogCopy = document.querySelector("#dialog-copy");
+      const dialogIcon = document.querySelector("#dialog-icon");
+      const width = 720;
+      const height = 480;
+      const keys = new Set();
+      const stars = Array.from({ length: 65 }, (_, index) => ({
+        x: (index * 127 + 31) % width,
+        y: (index * 83 + 17) % height,
+        radius: .7 + (index % 4) * .35,
+        phase: index * .7
+      }));
+
+      let state = "ready";
+      let score = 0;
+      let lives = 3;
+      let best = Number(localStorage.getItem("atrapa-monedas-record")) || 0;
+      let playerX = width / 2;
+      let items = [];
+      let particles = [];
+      let spawnTimer = 0;
+      let lastTime = 0;
+      let elapsed = 0;
+      let pointerActive = false;
+      bestDisplay.textContent = best;
+
+      function resizeCanvas() {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        draw();
+      }
+
+      function drawBackground(time) {
+        const gradient = context.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, "#152143");
+        gradient.addColorStop(1, "#10182f");
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, width, height);
+        stars.forEach((star) => {
+          context.globalAlpha = .38 + Math.sin(time / 650 + star.phase) * .2;
+          context.fillStyle = "#dce8ff";
+          context.beginPath();
+          context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          context.fill();
+        });
+        context.globalAlpha = 1;
+        context.fillStyle = "rgba(94, 132, 190, .12)";
+        context.fillRect(0, height - 23, width, 23);
+        context.fillStyle = "#395b84";
+        context.fillRect(0, height - 23, width, 2);
+      }
+
+      function drawPlayer() {
+        const y = height - 52;
+        context.save();
+        context.translate(playerX, y);
+        context.shadowColor = "rgba(68, 229, 193, .35)";
+        context.shadowBlur = 18;
+        context.fillStyle = "#66ddbd";
+        context.beginPath();
+        context.moveTo(-36, -12);
+        context.lineTo(36, -12);
+        context.lineTo(29, 13);
+        context.quadraticCurveTo(0, 25, -29, 13);
+        context.closePath();
+        context.fill();
+        context.shadowBlur = 0;
+        context.strokeStyle = "#b5ffe9";
+        context.lineWidth = 4;
+        context.beginPath();
+        context.arc(0, -10, 21, Math.PI, 0);
+        context.stroke();
+        context.fillStyle = "#163d46";
+        context.beginPath();
+        context.arc(-9, 2, 2.5, 0, Math.PI * 2);
+        context.arc(9, 2, 2.5, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      function drawItem(item) {
+        context.save();
+        context.translate(item.x, item.y);
+        context.rotate(item.rotation);
+        if (item.type === "coin") {
+          context.shadowColor = "#ffcf49";
+          context.shadowBlur = 15;
+          context.fillStyle = "#ffc947";
+          context.beginPath();
+          context.arc(0, 0, item.radius, 0, Math.PI * 2);
+          context.fill();
+          context.shadowBlur = 0;
+          context.strokeStyle = "#fff0a3";
+          context.lineWidth = 3;
+          context.beginPath();
+          context.arc(0, 0, item.radius - 4, 0, Math.PI * 2);
+          context.stroke();
+          context.fillStyle = "#9c6414";
+          context.font = "bold 17px Trebuchet MS, sans-serif";
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+          context.fillText("$", 0, 1);
+        } else {
+          context.shadowColor = "#ff637d";
+          context.shadowBlur = 15;
+          context.fillStyle = "#ff657c";
+          context.beginPath();
+          context.arc(0, 2, item.radius, 0, Math.PI * 2);
+          context.fill();
+          context.shadowBlur = 0;
+          context.fillStyle = "#ffb5a2";
+          context.beginPath();
+          context.moveTo(-5, -item.radius + 3);
+          context.quadraticCurveTo(-3, -item.radius - 10, 6, -item.radius - 8);
+          context.lineTo(9, -item.radius - 4);
+          context.lineTo(3, -item.radius + 1);
+          context.closePath();
+          context.fill();
+          context.fillStyle = "#492b56";
+          context.beginPath();
+          context.arc(-6, 2, 2.3, 0, Math.PI * 2);
+          context.arc(6, 2, 2.3, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.restore();
+      }
+
+      function draw() {
+        drawBackground(performance.now());
+        items.forEach(drawItem);
+        particles.forEach((particle) => {
+          context.globalAlpha = Math.max(0, particle.life / particle.maxLife);
+          context.fillStyle = particle.color;
+          context.beginPath();
+          context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+          context.fill();
+        });
+        context.globalAlpha = 1;
+        drawPlayer();
+      }
+
+      function updateDisplays() {
+        scoreDisplay.textContent = score;
+        livesDisplay.textContent = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+      }
+
+      function spawnItem() {
+        const isCoin = Math.random() < .72;
+        items.push({
+          type: isCoin ? "coin" : "bomb",
+          x: 28 + Math.random() * (width - 56),
+          y: -25,
+          radius: isCoin ? 15 : 17,
+          speed: 145 + Math.min(score * 1.4, 155) + Math.random() * 45,
+          rotation: Math.random() * Math.PI
+        });
+      }
+
+      function burst(x, y, color) {
+        for (let index = 0; index < 12; index += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 45 + Math.random() * 140;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 2 + Math.random() * 3,
+            color,
+            life: .55,
+            maxLife: .55
+          });
+        }
+      }
+
+      function endGame() {
+        state = "over";
+        overlay.hidden = false;
+        dialogIcon.textContent = "✨";
+        dialogTitle.textContent = "¡Se acabó!";
+        dialogCopy.textContent = `Hiciste ${score} puntos. ${score >= best ? "¡Ese es tu nuevo récord!" : "¿Puedes superar tu récord?"}`;
+        playButton.textContent = "Jugar otra vez";
+      }
+
+      function update(delta) {
+        elapsed += delta;
+        const movement = (keys.has("ArrowRight") || keys.has("d") || keys.has("D") ? 1 : 0)
+          - (keys.has("ArrowLeft") || keys.has("a") || keys.has("A") ? 1 : 0);
+        playerX = Math.max(39, Math.min(width - 39, playerX + movement * 390 * delta));
+
+        spawnTimer += delta;
+        const spawnInterval = Math.max(.38, .92 - score * .003);
+        if (spawnTimer >= spawnInterval) {
+          spawnTimer = 0;
+          spawnItem();
+        }
+
+        items = items.filter((item) => {
+          item.y += item.speed * delta;
+          item.rotation += delta * (item.type === "coin" ? 1.6 : .45);
+          const caught = item.y + item.radius >= height - 68
+            && item.y - item.radius <= height - 35
+            && Math.abs(item.x - playerX) < 39;
+          if (caught) {
+            if (item.type === "coin") {
+              score += 10;
+              if (score > best) {
+                best = score;
+                localStorage.setItem("atrapa-monedas-record", best);
+                bestDisplay.textContent = best;
+              }
+              burst(item.x, item.y, "#ffd45c");
+            } else {
+              lives -= 1;
+              burst(item.x, item.y, "#ff7188");
+              if (lives <= 0) {
+                updateDisplays();
+                endGame();
+              }
+            }
+            updateDisplays();
+            return false;
+          }
+          return item.y < height + 30;
+        });
+
+        particles = particles.filter((particle) => {
+          particle.x += particle.vx * delta;
+          particle.y += particle.vy * delta;
+          particle.vy += 100 * delta;
+          particle.life -= delta;
+          return particle.life > 0;
+        });
+      }
+
+      function frame(time) {
+        const delta = Math.min((time - lastTime) / 1000 || 0, .035);
+        lastTime = time;
+        if (state === "playing") update(delta);
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      function startGame() {
+        score = 0;
+        lives = 3;
+        playerX = width / 2;
+        items = [];
+        particles = [];
+        spawnTimer = 0;
+        elapsed = 0;
+        state = "playing";
+        overlay.hidden = true;
+        updateDisplays();
+      }
+
+      function moveToPointer(event) {
+        const bounds = canvas.getBoundingClientRect();
+        playerX = Math.max(39, Math.min(width - 39, (event.clientX - bounds.left) * width / bounds.width));
+      }
+
+      playButton.addEventListener("click", startGame);
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("keydown", (event) => {
+        if (["ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
+        keys.add(event.key);
+        if ((event.key === " " || event.key === "Enter") && state !== "playing") startGame();
+      });
+      window.addEventListener("keyup", (event) => keys.delete(event.key));
+      window.addEventListener("blur", () => keys.clear());
+      canvas.addEventListener("pointerdown", (event) => {
+        pointerActive = true;
+        canvas.setPointerCapture(event.pointerId);
+        moveToPointer(event);
+      });
+      canvas.addEventListener("pointermove", (event) => {
+        if (pointerActive) moveToPointer(event);
+      });
+      canvas.addEventListener("pointerup", () => { pointerActive = false; });
+      canvas.addEventListener("pointercancel", () => { pointerActive = false; });
+      document.querySelectorAll(".move-button").forEach((button) => {
+        const direction = Number(button.dataset.direction);
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          keys.add(direction < 0 ? "ArrowLeft" : "ArrowRight");
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
+          button.addEventListener(type, () => keys.delete(direction < 0 ? "ArrowLeft" : "ArrowRight"));
+        });
+      });
+
+      resizeCanvas();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
