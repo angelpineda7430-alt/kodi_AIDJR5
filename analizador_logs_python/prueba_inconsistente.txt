@@ -1,0 +1,6 @@
+[INFO] 2025-02-30 Invalid calendar date
+[WARNING] Invalid password attempt
+[ALERT] 2025-01-10 Unknown severity level
+ERROR 2025-01-10 Missing brackets around severity
+[ERROR] 2025-01-10
+[INFO] 2025/01/10 Wrong date format
