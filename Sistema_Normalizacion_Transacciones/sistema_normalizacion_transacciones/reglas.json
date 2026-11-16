@@ -1,0 +1,54 @@
+{
+    "esquema_normalizado": {
+        "id": "Identificador único de la transacción, texto",
+        "amount": "Monto numérico decimal positivo",
+        "currency": "Código ISO de moneda: USD, EUR o GBP",
+        "timestamp": "Fecha y hora ISO-8601; fechas sin zona horaria se interpretan como UTC",
+        "status": "SUCCESS, FAILED o PENDING",
+        "source": "FUENTE_A, FUENTE_B, FUENTE_C o DESCONOCIDA"
+    },
+    "mapeo_estados": {
+        "SUCCESS": [
+            "completed",
+            "complete",
+            "ok",
+            "success",
+            "successful",
+            "approved"
+        ],
+        "FAILED": [
+            "failed",
+            "failure",
+            "error",
+            "rejected",
+            "declined"
+        ],
+        "PENDING": [
+            "pending",
+            "processing",
+            "in_progress"
+        ]
+    },
+    "monedas_soportadas": [
+        "USD",
+        "EUR",
+        "GBP"
+    ],
+    "formatos_fecha": [
+        "ISO-8601",
+        "YYYY-MM-DD HH:MM:SS",
+        "YYYY-MM-DD HH:MM",
+        "DD/MM/YYYY HH:MM",
+        "DD/MM/YYYY HH:MM:SS",
+        "YYYY-MM-DD"
+    ],
+    "criterios_validacion": [
+        "Identificador obligatorio",
+        "Monto obligatorio, numérico y mayor que cero",
+        "Moneda obligatoria y soportada",
+        "Fecha obligatoria y reconocible",
+        "Estado obligatorio y reconocido",
+        "No se permiten identificadores duplicados"
+    ],
+    "tratamiento_invalidos": "Se separan de las transacciones válidas y se conserva el detalle de los errores."
+}
