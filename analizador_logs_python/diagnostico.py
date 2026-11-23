@@ -10,7 +10,8 @@ def diagnosticar(eventos):
     if errores:
         cantidad = len(errores)
         sustantivo = "evento" if cantidad == 1 else "eventos"
-        resumen.append(f"Se encontraron {cantidad} {sustantivo} ERROR que requieren revisión.")
+        verbo = "requiere" if cantidad == 1 else "requieren"
+        resumen.append(f"Se encontraron {cantidad} {sustantivo} ERROR que {verbo} revisión.")
     if advertencias:
         cantidad = len(advertencias)
         sustantivo = "advertencia" if cantidad == 1 else "advertencias"
