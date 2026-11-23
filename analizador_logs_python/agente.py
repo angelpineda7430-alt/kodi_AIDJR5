@@ -54,7 +54,16 @@ def seleccionar_accion(pregunta, skills):
         ]
         try:
             respuesta = consultar(mensajes)
-            datos = json.loads(respuesta)
+            # Algunos modelos envuelven el JSON en bloques Markdown.
+            texto_json = respuesta.strip()
+            if texto_json.startswith("```"):
+                lineas = texto_json.splitlines()
+                if lineas and lineas[0].strip().startswith("```"):
+                    lineas = lineas[1:]
+                if lineas and lineas[-1].strip() == "```":
+                    lineas = lineas[:-1]
+                texto_json = "\n".join(lineas).strip()
+            datos = json.loads(texto_json)
             accion = datos.get("accion")
             if accion in skills:
                 return accion, "LLM"
