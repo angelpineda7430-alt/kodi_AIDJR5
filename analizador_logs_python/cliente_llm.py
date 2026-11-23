@@ -1,7 +1,7 @@
 """Cliente opcional compatible con la API de Chat Completions.
 
-La clave se lee desde OPENAI_API_KEY. Nunca se almacena en el repositorio.
-El análisis de logs sigue funcionando sin conexión a un proveedor LLM.
+Admite OpenAI y servidores locales compatibles, como Ollama.
+Para Ollama no se necesita una clave real: el servidor local no la exige.
 """
 import json
 import os
@@ -14,16 +14,35 @@ class ErrorLLM(RuntimeError):
 
 
 def disponible():
+    proveedor = os.getenv("LLM_PROVIDER", "openai").strip().lower()
+    if proveedor == "ollama":
+        return True
     return bool(os.getenv("OPENAI_API_KEY"))
 
 
 def consultar(mensajes):
+    proveedor = os.getenv("LLM_PROVIDER", "openai").strip().lower()
     api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+
+    if proveedor not in {"openai", "ollama"}:
+        raise ErrorLLM("LLM_PROVIDER debe ser 'openai' u 'ollama'.")
+
+    if proveedor == "openai" and not api_key:
         raise ErrorLLM("No se configuró OPENAI_API_KEY.")
 
-    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    modelo = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    if proveedor == "ollama":
+        base_url = os.getenv(
+            "OPENAI_BASE_URL", "http://localhost:11434/v1"
+        ).rstrip("/")
+        modelo = os.getenv("OPENAI_MODEL", "qwen2.5:1.5b")
+        # Ollama local no valida esta clave; se envía solo por compatibilidad.
+        api_key = "ollama"
+    else:
+        base_url = os.getenv(
+            "OPENAI_BASE_URL", "https://api.openai.com/v1"
+        ).rstrip("/")
+        modelo = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
     payload = json.dumps({
         "model": modelo, "messages": mensajes, "temperature": 0.2
     }).encode("utf-8")
@@ -37,7 +56,7 @@ def consultar(mensajes):
         method="POST"
     )
     try:
-        with urlopen(solicitud, timeout=45) as respuesta:
+        with urlopen(solicitud, timeout=120) as respuesta:
             datos = json.loads(respuesta.read().decode("utf-8"))
         return datos["choices"][0]["message"]["content"]
     except (HTTPError, URLError, TimeoutError, KeyError, IndexError, ValueError) as exc:
