@@ -28,6 +28,14 @@ El agente acepta solicitudes como:
 
 Escriba \`salir\` para terminar.
 
+## Pruebas unitarias
+
+Desde esta carpeta ejecute:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## Configuración opcional del LLM
 Configure las variables de entorno \`OPENAI_API_KEY\`, \`OPENAI_BASE_URL\` y \`OPENAI_MODEL\`. El valor predeterminado del modelo es \`gpt-4o-mini\`. Nunca incluya claves reales en GitHub.
 
