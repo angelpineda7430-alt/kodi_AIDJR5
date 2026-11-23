@@ -8,8 +8,8 @@ Separar responsabilidades y añadir un agente que pueda seleccionar capacidades 
 
 ## 3. Arquitectura resultante
 - **analizador.py:** lectura, parsing, validación de fechas y métricas.
-- **agente.py:** coordinación y selección de skills.
-- **cliente_llm.py:** comunicación opcional con una API compatible con Chat Completions.
+- **agente.py:** coordinación y selección de skills; limpia respuestas JSON envueltas en Markdown y valida que la acción pertenezca al catálogo permitido.
+- **cliente_llm.py:** comunicación opcional con Ollama local o una API compatible con Chat Completions.
 - **diagnostico.py:** hallazgos verificables a partir de los eventos.
 - **reportes.py:** construcción de informes.
 - **interfaz.py:** interacción de consola.
@@ -21,16 +21,16 @@ Cada skill cuenta con un archivo SKILL.md que define su nombre, descripción, cu
 ## 5. Personalización del agente
 El agente recibe una solicitud en lenguaje natural. Cuando el proveedor LLM está configurado, solicita al modelo que seleccione una de las skills permitidas mediante una respuesta JSON. La selección se valida contra el catálogo local antes de ejecutar una capacidad.
 
-Si el LLM no está configurado o la respuesta no es válida, se utiliza un enrutamiento local explícito. La interfaz informa qué modo de selección se utilizó; el modo local no se presenta como razonamiento LLM.
+Algunos modelos entregan el JSON dentro de un bloque Markdown. El agente elimina esos delimitadores antes de interpretar la respuesta. Si el LLM no está configurado o la respuesta no es válida, se utiliza un enrutamiento local explícito. La interfaz informa qué modo de selección se utilizó; el modo local no se presenta como razonamiento LLM.
 
 ## 6. Separación entre IA y lógica determinista
-Python realiza el conteo de eventos, la validación de fechas y la identificación de incidencias. El LLM no inventa ni calcula métricas: selecciona la capacidad y puede redactar una explicación basada en resultados producidos por el programa. Esto facilita verificar las cifras y reduce errores de interpretación.
+Python realiza el conteo de eventos, la validación de fechas y la identificación de incidencias. Para el diagnóstico, Python proporciona al modelo el resumen y la evidencia por línea: número, nivel, problemas detectados y texto original. El LLM redacta una explicación basada en esos resultados; no debe inventar métricas ni causas raíz que no estén demostradas. Esta separación facilita verificar las cifras y reduce errores de interpretación.
 
-## 7. Seguridad
-La clave de API se obtiene de variables de entorno y no se incluye en el repositorio. Los archivos de logs pueden contener información sensible; deben anonimizarse antes de enviarlos a un servicio externo.
+## 7. Proveedor LLM local y seguridad
+Ollama permite ejecutar un modelo local mediante su endpoint compatible con Chat Completions, sin requerir una clave API real. También se admite un proveedor API compatible con OpenAI, cuya clave se obtiene de variables de entorno y no se incluye en el repositorio. Los archivos de logs pueden contener información sensible; deben revisarse y anonimizarse antes de enviarlos a un servicio externo.
 
 ## 8. Pruebas y validación
-Se deben ejecutar los archivos de prueba originales, tanto el correcto como el inconsistente, y comprobar que el total de eventos, los niveles, las fechas válidas y las líneas malformadas coinciden con el contenido del archivo. También debe probarse el modo sin clave LLM y, si se dispone de credenciales, el modo conectado.
+La suite de pruebas unitarias se ejecutó con `python -m unittest discover -s tests -v`: seis pruebas finalizaron correctamente. También se comprobó manualmente que Ollama expone el modelo `qwen2.5:1.5b`, que el endpoint Chat Completions responde y que el agente selecciona la skill de diagnóstico en modo LLM y presenta hallazgos con números de línea. Conviene repetir las pruebas con los archivos de ejemplo correcto e inconsistente antes de cada entrega.
 
 ## 9. Uso de IA como apoyo
-La IA se utiliza como apoyo para proponer la separación modular, el diseño de skills y la coordinación del agente. Las decisiones de arquitectura, las reglas de validación y los resultados se deben revisar mediante pruebas. La aprobación final del diseño y la explicación del funcionamiento corresponden al estudiante.
+La IA se utiliza como apoyo para proponer la separación modular, el diseño de skills y la coordinación del agente. Las decisiones de arquitectura, las reglas de validación y los resultados se revisan mediante pruebas. La aprobación final del diseño y la explicación del funcionamiento corresponden al estudiante.
