@@ -22,6 +22,11 @@ class AnalizadorLogsTests(unittest.TestCase):
         self.assertEqual(evento["nivel"], "SIN_CLASIFICAR")
         self.assertTrue(evento["malformada"])
 
+    def test_fecha_con_barras_se_marca_malformada(self):
+        evento = analizar_linea("[INFO] 2025/01/10 Wrong date format", 6)
+        self.assertTrue(evento["malformada"])
+        self.assertIn("fecha ausente o con formato inválido", evento["problemas"])
+
     def test_resumen(self):
         eventos = [
             analizar_linea("[INFO] 2025-01-10 Inicio", 1),
