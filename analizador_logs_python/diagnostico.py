@@ -8,9 +8,13 @@ def diagnosticar(eventos):
     malformados = [e for e in eventos if e["malformada"]]
 
     if errores:
-        resumen.append(f"Se encontraron {len(errores)} eventos ERROR que requieren revisión.")
+        cantidad = len(errores)
+        sustantivo = "evento" if cantidad == 1 else "eventos"
+        resumen.append(f"Se encontraron {cantidad} {sustantivo} ERROR que requieren revisión.")
     if advertencias:
-        resumen.append(f"Se encontraron {len(advertencias)} eventos WARNING.")
+        cantidad = len(advertencias)
+        sustantivo = "advertencia" if cantidad == 1 else "advertencias"
+        resumen.append(f"Se encontraron {cantidad} {sustantivo} WARNING.")
     if malformados:
         resumen.append(f"Hay {len(malformados)} líneas malformadas o incompletas.")
     if not resumen:
