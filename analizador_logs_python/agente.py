@@ -64,7 +64,7 @@ def seleccionar_accion(pregunta, skills):
     texto = pregunta.lower()
     if any(p in texto for p in ("informe", "reporte", "documento")):
         return "reportes", "reglas locales"
-    if any(p in texto for p in ("causa", "diagnóstico", "diagnostico", "gravedad", "recomend")):
+    if any(p in texto for p in ("causa", "diagnóstico", "diagnostico", "diagnostica", "diagnosticar", "errores", "advertencias", "gravedad", "recomend")):
         return "diagnostico", "reglas locales"
     if any(p in texto for p in ("estadística", "estadistica", "métrica", "metrica", "resumen", "cuántos", "cuantos")):
         return "analisis", "reglas locales"
