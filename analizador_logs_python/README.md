@@ -36,11 +36,22 @@ Desde esta carpeta ejecute:
 python -m unittest discover -s tests -v
 ```
 
+La suite contiene seis pruebas unitarias para lectura y validación de eventos, fechas, niveles y resumen estadístico.
+
 ## Configuración opcional del LLM
 
-### Ollama local (sin clave API ni pago por consulta)
+### Ollama local
 
-Con Ollama instalado y el modelo descargado, abra PowerShell en esta carpeta y ejecute:
+Con Ollama instalado y el modelo descargado, abra CMD en esta carpeta y configure:
+
+```cmd
+set LLM_PROVIDER=ollama
+set OPENAI_BASE_URL=http://localhost:11434/v1
+set OPENAI_MODEL=qwen2.5:1.5b
+python analizador_logs.py prueba_correcta.txt
+```
+
+En PowerShell, utilice:
 
 ```powershell
 $env:LLM_PROVIDER="ollama"
@@ -49,7 +60,7 @@ $env:OPENAI_MODEL="qwen2.5:1.5b"
 python analizador_logs.py prueba_correcta.txt
 ```
 
-No es necesario configurar `OPENAI_API_KEY` para Ollama local.
+No es necesario configurar `OPENAI_API_KEY` para Ollama local. El servidor debe estar iniciado y el modelo debe haberse descargado previamente.
 
 ### API compatible con OpenAI
 
@@ -59,7 +70,7 @@ Sin un proveedor LLM configurado, el sistema utiliza selección local de skills.
 
 ## Arquitectura
 - `analizador.py`: lectura, parsing, validación de fechas y métricas.
-- `agente.py`: selección de skills y coordinación.
+- `agente.py`: selección de skills y coordinación; valida la acción devuelta por el modelo y admite JSON envuelto en Markdown.
 - `cliente_llm.py`: comunicación con Ollama local o API compatible con Chat Completions.
 - `diagnostico.py`: hallazgos deterministas.
 - `reportes.py`: construcción de informes.
@@ -71,5 +82,5 @@ Sin un proveedor LLM configurado, el sistema utiliza selección local de skills.
 - La clave de API, si se utiliza, se obtiene del entorno y no se guarda en el repositorio.
 - Ollama se ejecuta localmente; los prompts no necesitan enviarse a un proveedor externo.
 - Los logs pueden contener información sensible; revise su contenido antes de compartirlo.
-- Python produce las métricas; el modelo selecciona la skill y redacta explicaciones.
-- Si no hay LLM disponible, se usa el enrutamiento local por palabras clave.
+- Python produce las métricas y los hallazgos verificables; el modelo selecciona la skill y redacta explicaciones basadas en esos datos.
+- Si no hay LLM disponible o su respuesta no puede validarse, se usa el enrutamiento local por palabras clave.
